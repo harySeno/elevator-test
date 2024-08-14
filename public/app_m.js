@@ -53,8 +53,8 @@ function drawElevator() {
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(110, yPosition)
-    ctx.lineTo(110, yPosition+canvas.height)
+    ctx.moveTo(110, yPosition);
+    ctx.lineTo(110, yPosition + canvas.height);
     ctx.stroke();
 
     //ctx.fillText('test', 115, yPosition + floorHeight - 1);
@@ -69,11 +69,16 @@ function drawElevator() {
       gapBetween = idx * 15;
     }
     const pos = 55 + gapBetween;
-    const obj = elevators[idx]
-    drawElevatorBox(pos,canvas.height - (obj.currentFloor + 1) * floorHeight + (floorHeight - elevatorHeight), elevatorWidth, elevatorHeight)
-  
-    ctx.fillText('Waiting', 115, (obj.targetFloor - 1) * floorHeight);
-    ctx.stroke()
+    const elevator = elevators[idx];
+    drawElevatorBox(
+      pos, 
+      canvas.height - (elevator.currentFloor + 1) * floorHeight + (floorHeight - elevatorHeight), 
+      elevatorWidth, 
+      elevatorHeight
+    );
+
+    ctx.fillText('Waiting', 115, (elevator.targetFloor - 1) * floorHeight);
+    ctx.stroke();
   }
 }
 
