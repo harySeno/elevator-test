@@ -9,32 +9,30 @@ const floorHeight = 14; // Each floor will have a height of 14px to fit 50 floor
 const elevatorWidth = 10; // Smaller elevator width
 const elevatorHeight = 13; // Smaller elevator height to fit within the floor height
 
-let elevators = [
-  {
-    currentFloor: 0,
-    previousFloor: 0,
-    targetFloor: 0,
-    animationId: null,
-    state: 0,
-  },
-  {
-    currentFloor: 0,
-    previousFloor: 0,
-    targetFloor: 0,
-    animationId: null,
-    state: 0,
-  },
-  {
-    currentFloor: 0,
-    previousFloor: 0,
-    targetFloor: 0,
-    animationId: null,
-    state: 0,
+// Class representing an elevator.
+class Elevator {
+  constructor() {
+    this.currentFloor = 0;
+    this.previousFloor = 0;
+    this.targetFloor = 0;
+    this.animationId = null;
+    this.state = 0;
   }
-];
+// Resets the elevator
+  reset() {
+    this.currentFloor = 0;
+    this.previousFloor = 0;
+    this.targetFloor = 0;
+    this.animationId = null;
+    this.state = 0;
+  }
+}
+
+// Create multiple elevators
+const elevators = [new Elevator(), new Elevator(), new Elevator()];
 
 let startTime = new Date();
-let finishTime;
+let finishTime = null;
 
 let deliveredCount = 0;
 let timeNeeded = 0;
