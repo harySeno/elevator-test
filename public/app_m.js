@@ -88,58 +88,58 @@ function drawElevatorBox(xPos, yPos, wVal, hVal) {
 }
 
 function animateElevator(idx, cb) {
-  const obj = elevators[idx];
+  const elevator = elevators[idx];
 
-  obj.state = 1;
+  elevator.state = 1;
 
-  if (obj.currentFloor < obj.targetFloor) {
-    let gap = obj.targetFloor - obj.currentFloor; // 50 - 10 = 40
-    let inLinear = parseInt(obj.targetFloor / 5) // 50 / 5 = 10
+  if (elevator.currentFloor < elevator.targetFloor) {
+    let gap = elevator.targetFloor - elevator.currentFloor; // 50 - 10 = 40
+    let inLinear = parseInt(elevator.targetFloor / 5); // 50 / 5 = 10
     if (gap < 5) {
       // slower movement on near floor
-      obj.currentFloor += 0.1; // Speed of the elevator
-    } else if (obj.currentFloor === 0 && obj.currentFloor <= inLinear) {
-      obj.currentFloor += 0.1
-    } else if (obj.currentFloor > 0 && (obj.currentFloor - 5) < inLinear) {
-      obj.currentFloor += 0.1;
+      elevator.currentFloor += 0.1; // Speed of the elevator
+    } else if (elevator.currentFloor === 0 && elevator.currentFloor <= inLinear) {
+      elevator.currentFloor += 0.1;
+    } else if (elevator.currentFloor > 0 && (elevator.currentFloor - 5) < inLinear) {
+      elevator.currentFloor += 0.1;
     } else {
-      obj.currentFloor += 0.2; // Speed of the elevator
+      elevator.currentFloor += 0.2; // Speed of the elevator
     }
-    if (obj.currentFloor > obj.targetFloor) obj.currentFloor = obj.targetFloor;
-  } else if (obj.currentFloor > obj.targetFloor) {
-    let gap = (obj.currentFloor - obj.targetFloor)
-    if (obj.previousFloor > 0) {
-      let inLinear = parseInt(obj.previousFloor/ 5)
+    if (elevator.currentFloor > elevator.targetFloor) elevator.currentFloor = elevator.targetFloor;
+  } else if (elevator.currentFloor > elevator.targetFloor) {
+    let gap = elevator.currentFloor - elevator.targetFloor;
+    if (elevator.previousFloor > 0) {
+      let inLinear = parseInt(elevator.previousFloor / 5);
       if (gap < 5) {
-        obj.currentFloor -= 0.1; // Speed of the elevator
-      } else if (obj.currentFloor > parseInt(inLinear * 5)) {
-        obj.currentFloor -= 0.1;
+        elevator.currentFloor -= 0.1; // Speed of the elevator
+      } else if (elevator.currentFloor > parseInt(inLinear * 5)) {
+        elevator.currentFloor -= 0.1;
       } else {
-        obj.currentFloor -= 0.2; // Speed of the elevator
+        elevator.currentFloor -= 0.2; // Speed of the elevator
       }
     } else {
       if (gap < 5) {
-        obj.currentFloor -= 0.1; // Speed of the elevator
+        elevator.currentFloor -= 0.1; // Speed of the elevator
       } else {
-        obj.currentFloor -= 0.2; // Speed of the elevator
+        elevator.currentFloor -= 0.2; // Speed of the elevator
       }
     }
 
-    if (obj.currentFloor < obj.targetFloor) {
-       obj.currentFloor = obj.targetFloor;
+    if (elevator.currentFloor < elevator.targetFloor) {
+      elevator.currentFloor = elevator.targetFloor;
     }
   }
-  
+
   drawElevator();
-
-  if (obj.currentFloor !== obj.targetFloor) {
-    obj.animationId = requestAnimationFrame(eval('animateElevator'+(idx+1)));
+// Continue elevator until it reaches the target floor
+  if (elevator.currentFloor !== elevator.targetFloor) {
+    elevator.animationId = requestAnimationFrame(() => animateElevator(idx, cb));
   } else {
-    obj.previousFloor = obj.currentFloor;
-    cancelAnimationFrame(obj.animationId);
+    elevator.previousFloor = elevator.currentFloor;
+    cancelAnimationFrame(elevator.animationId);
 
-    obj.state = 0;
-    if (typeof cb === 'function') cb(obj);
+    elevator.state = 0;
+    if (typeof cb === 'function') cb(elevator);
   }
 }
 
