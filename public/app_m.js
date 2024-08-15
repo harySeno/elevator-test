@@ -157,93 +157,36 @@ function updateDeliverCount(v) {
   document.getElementById("counter").innerHTML = deliveredCount;
 }
 
-drawElevator(0, 0); // Initial drawing
-drawElevator(1, 0); // Initial drawing
-drawElevator(2, 0); // Initial drawing
+drawElevator(); // Initial drawing for all elevators
 
-let elvParams1 = [];
-function setElevatorParams1() {
-  elvParams1 = arguments;
-}
-function getElevatorParams1(){
-  return elvParams1;
-}
-function clearElevatorParams1() {
-  elvParams1 = [];
+let elevatorParams = [];
+
+function setElevatorParams(idx, ...params) {
+  elevatorParams[idx] = params;
 }
 
-let elvParams2 = [];
-function setElevatorParams2() {
-  elvParams2 = arguments;
-}
-function getElevatorParams2(){
-  return elvParams2;
-}
-function clearElevatorParams2() {
-  elvParams2 = [];
+function getElevatorParams(idx) {
+  return elevatorParams[idx] || [];
 }
 
-let elvParams3 = [];
-function setElevatorParams3() {
-  elvParams3 = arguments;
-}
-function getElevatorParams3(){
-  return elvParams3;
-}
-function clearElevatorParams3() {
-  elvParams3 = [];
+function clearElevatorParams(idx) {
+  elevatorParams[idx] = [];
 }
 
-function animateElevator1(){
-  animateElevator.apply(null, [0, ...getElevatorParams1()])
-}
-function animateElevator2(){
-  animateElevator.apply(null, [1, ...getElevatorParams2()])
-}
-function animateElevator3(){
-  animateElevator.apply(null, [2, ...getElevatorParams3()])
+function startElevatorAnimation(idx) {
+  animateElevator(idx, ...getElevatorParams(idx));
 }
 
 function mapSetIdxToElevator(idx, params) {
-  if (idx === 2) {
-    setElevatorParams3.apply(null, params)
-  }
-
-  if (idx === 1) {
-    setElevatorParams2.apply(null, params)
-  }
-
-  if (idx === 0) {
-    setElevatorParams1.apply(null, params)
-  }
+  setElevatorParams(idx, ...params);
 }
 
 function mapClearParamsIdxElevator(idx) {
-  if (idx === 2) {
-    clearElevatorParams3()
-  }
-
-  if (idx === 1) {
-    clearElevatorParams2()
-  }
-
-  if (idx === 0) {
-    clearElevatorParams1()
-  }
+  clearElevatorParams(idx);
 }
 
 function mapCallIdxToElevator(idx) {
-  if (idx === 2) {
-    animateElevator3()
-  }
-
-  if (idx === 1) {
-    animateElevator2()
-  }
-
-  if (idx === 0) {
-    animateElevator1()
-  }
+  startElevatorAnimation(idx);
 }
 
 // todo random
