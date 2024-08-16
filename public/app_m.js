@@ -35,6 +35,10 @@ let startTime = new Date();
 let finishTime = null;
 
 let deliveredCount = 0;
+let timeNeeded = 0;
+
+// Set "waiting" on the targeted floor
+let waitingFloors = new Set();
 
 function updateDeliverCount(v) {
   if (v !== undefined && v > 0) {
@@ -88,8 +92,11 @@ function drawElevator() {
       elevatorHeight
     );
 
-    ctx.fillText('Waiting', 115, (elevator.targetFloor - 1) * floorHeight);
-    ctx.stroke();
+    // Draw the "Waiting" text for target floors
+    if (waitingFloors.has(elevator.targetFloor)) {
+      ctx.fillStyle = 'red';
+      ctx.fillText('Waiting', 115, canvas.height - (elevator.targetFloor + 1) * floorHeight + floorHeight / 2);
+    }
   }
 }
 
@@ -119,6 +126,9 @@ function animateElevator(idx, cb) {
 
     elevator.state = 0; // Elevator is now idle
     if (typeof cb === 'function') cb(elevator);
+
+    // Remove "Waiting" text after it reaches
+    waitingFloors.delete(elevator.targetFloor);
 
     // Check if there's a queued request
     const nextRequest = getElevatorParams(idx);
@@ -168,6 +178,9 @@ function go(idx, man, cb) {
     setElevatorParams(idx, man, cb);
     return;
   }
+
+  // Set the "Waiting" text
+  waitingFloors.add(man.from - 1);
 
   // Start moving to the man's floor
   elevator.targetFloor = man.from - 1;
