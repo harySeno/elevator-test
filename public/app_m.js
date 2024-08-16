@@ -18,7 +18,7 @@ class Elevator {
     this.animationId = null;
     this.state = 0;
   }
-// Resets the elevator
+  // Resets the elevator
   reset() {
     this.currentFloor = 0;
     this.previousFloor = 0;
@@ -35,9 +35,20 @@ let startTime = new Date();
 let finishTime = null;
 
 let deliveredCount = 0;
-let timeNeeded = 0;
 
-updateDeliverCount();
+function updateDeliverCount(v) {
+  if (v !== undefined && v > 0) {
+    deliveredCount += v;
+  }
+  document.getElementById("startTime").innerHTML = startTime.toLocaleString();
+  
+  if (finishTime) {
+    document.getElementById("finishTime").innerHTML = finishTime.toLocaleString();
+    document.getElementById("gapTime").innerHTML = getDateTimeSince(startTime);
+  }
+
+  document.getElementById("counter").innerHTML = deliveredCount;
+}
 
 function drawElevator() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -90,74 +101,33 @@ function drawElevatorBox(xPos, yPos, wVal, hVal) {
 function animateElevator(idx, cb) {
   const elevator = elevators[idx];
 
-  elevator.state = 1;
-
   if (elevator.currentFloor < elevator.targetFloor) {
-    let gap = elevator.targetFloor - elevator.currentFloor; // 50 - 10 = 40
-    let inLinear = parseInt(elevator.targetFloor / 5); // 50 / 5 = 10
-    if (gap < 5) {
-      // slower movement on near floor
-      elevator.currentFloor += 0.1; // Speed of the elevator
-    } else if (elevator.currentFloor === 0 && elevator.currentFloor <= inLinear) {
-      elevator.currentFloor += 0.1;
-    } else if (elevator.currentFloor > 0 && (elevator.currentFloor - 5) < inLinear) {
-      elevator.currentFloor += 0.1;
-    } else {
-      elevator.currentFloor += 0.2; // Speed of the elevator
-    }
+    elevator.currentFloor += 0.1;
     if (elevator.currentFloor > elevator.targetFloor) elevator.currentFloor = elevator.targetFloor;
   } else if (elevator.currentFloor > elevator.targetFloor) {
-    let gap = elevator.currentFloor - elevator.targetFloor;
-    if (elevator.previousFloor > 0) {
-      let inLinear = parseInt(elevator.previousFloor / 5);
-      if (gap < 5) {
-        elevator.currentFloor -= 0.1; // Speed of the elevator
-      } else if (elevator.currentFloor > parseInt(inLinear * 5)) {
-        elevator.currentFloor -= 0.1;
-      } else {
-        elevator.currentFloor -= 0.2; // Speed of the elevator
-      }
-    } else {
-      if (gap < 5) {
-        elevator.currentFloor -= 0.1; // Speed of the elevator
-      } else {
-        elevator.currentFloor -= 0.2; // Speed of the elevator
-      }
-    }
-
-    if (elevator.currentFloor < elevator.targetFloor) {
-      elevator.currentFloor = elevator.targetFloor;
-    }
+    elevator.currentFloor -= 0.1;
+    if (elevator.currentFloor < elevator.targetFloor) elevator.currentFloor = elevator.targetFloor;
   }
 
   drawElevator();
-// Continue elevator until it reaches the target floor
+  // Continue elevator until it reaches the target floor
   if (elevator.currentFloor !== elevator.targetFloor) {
     elevator.animationId = requestAnimationFrame(() => animateElevator(idx, cb));
   } else {
     elevator.previousFloor = elevator.currentFloor;
     cancelAnimationFrame(elevator.animationId);
 
-    elevator.state = 0;
+    elevator.state = 0; // Elevator is now idle
     if (typeof cb === 'function') cb(elevator);
+
+    // Check if there's a queued request
+    const nextRequest = getElevatorParams(idx);
+    if (nextRequest.length > 0) {
+      const [nextMan, nextCb] = nextRequest;
+      go(idx, nextMan, nextCb);
+    }
   }
 }
-
-function updateDeliverCount(v) {
-  if (v !== undefined && v > 0) {
-    deliveredCount += v;
-  }
-  document.getElementById("startTime").innerHTML = startTime.toLocaleString();
-  
-  if (finishTime) {
-    document.getElementById("finishTime").innerHTML = finishTime.toLocaleString();
-    document.getElementById("gapTime").innerHTML = getDateTimeSince(startTime);
-  }
-
-  document.getElementById("counter").innerHTML = deliveredCount;
-}
-
-drawElevator(); // Initial drawing for all elevators
 
 let elevatorParams = [];
 
@@ -189,41 +159,62 @@ function mapCallIdxToElevator(idx) {
   startElevatorAnimation(idx);
 }
 
-// todo random
 function go(idx, man, cb) {
-  const elv = elevators[idx];
-    // go to the man floor first
-    elv.targetFloor = man.from - 1;
-    mapSetIdxToElevator(idx, [function(elv) {
+  const elevator = elevators[idx];
 
-      setTimeout(function(){
-        elv.targetFloor = man.to - 1;
-        mapClearParamsIdxElevator(idx);
-        mapSetIdxToElevator(idx, [function(el){
-          if ((man.to - 1) == el.currentFloor) {
-            updateDeliverCount(1)
-          }
+  // Check if the elevator is already moving
+  if (elevator.state === 1) {
+    // Queue this request for later
+    setElevatorParams(idx, man, cb);
+    return;
+  }
 
-          // next
-          if (typeof cb === 'function') {
-            setTimeout(cb, 2000);
-          }
-        }])
-        mapCallIdxToElevator(idx);
-      }, 2000)
-    }]);
+  // Start moving to the man's floor
+  elevator.targetFloor = man.from - 1;
+  elevator.state = 1; // Set state to busy
 
-    mapCallIdxToElevator(idx);
+  mapSetIdxToElevator(idx, [function(elevator) {
+    setTimeout(function() {
+      elevator.targetFloor = man.to - 1;
+      mapClearParamsIdxElevator(idx);
+
+      mapSetIdxToElevator(idx, [function(el) {
+        if ((man.to - 1) === el.currentFloor) {
+          updateDeliverCount(1);
+          console.log(`Elevator ${idx + 1} delivered a passenger from floor ${man.from} to ${man.to}`);
+        }
+
+        if (typeof cb === 'function') {
+          setTimeout(cb, 2000);
+        }
+      }]);
+
+      mapCallIdxToElevator(idx);
+    }, 2000);
+  }]);
+
+  mapCallIdxToElevator(idx);
 }
 
+function dispatchRequests() {
+  mans.forEach((man, idx) => {
+    const elevatorIdx = idx % elevators.length;
+    go(elevatorIdx, man);
+  });
+
+  // Update finish time when all requests are handled
+  finishTime = new Date();
+  updateDeliverCount();
+}
+
+dispatchRequests(); // Handling requests in parallel
+
 function getNextElevator(idx) {
-  if (idx === 2) return 0;
-  return idx + 1;
+  return (idx + 1) % elevators.length;
 }
 
 function getMan(idx) {
-  if (idx === mans.length) return null;
-  return mans[idx];
+  return idx < mans.length ? mans[idx] : null;
 }
 
 function run(elvIdx, row) {
@@ -237,8 +228,7 @@ function run(elvIdx, row) {
 
     finishTime = new Date();
     updateDeliverCount();
-  })
+  });
 }
 
-run(0, 0)
-
+run(0, 0);
